@@ -6,6 +6,7 @@ import { Loader2 } from "lucide-react";
 import { CourseSearch } from "@/components/course-search";
 import { DateTimePicker } from "@/components/date-time-picker";
 import { WeatherDashboard } from "@/components/weather-dashboard";
+import { ForecastSummary } from "@/components/forecast-summary";
 import { Footer } from "@/components/footer";
 import { Button } from "@/components/ui/button";
 import type {
@@ -38,6 +39,44 @@ export default function Home() {
   const [score, setScore] = useState<PlayabilityScore | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [summary, setSummary] = useState<string | null>(null);
+  const [summaryLoading, setSummaryLoading] = useState(false);
+  const [summaryError, setSummaryError] = useState(false);
+
+  async function fetchSummary(
+    courseName: string,
+    forecastData: RoundForecast,
+    scoreData: PlayabilityScore
+  ) {
+    setSummaryLoading(true);
+    setSummaryError(false);
+
+    try {
+      const res = await fetch("/api/summary", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          courseName,
+          date,
+          teeTime: Math.floor(teeTime),
+          forecast: forecastData,
+          score: scoreData,
+        }),
+      });
+
+      if (!res.ok) {
+        setSummaryError(true);
+        return;
+      }
+
+      const data = await res.json();
+      setSummary(data.summary);
+    } catch {
+      setSummaryError(true);
+    } finally {
+      setSummaryLoading(false);
+    }
+  }
 
   async function fetchWeather() {
     if (!selectedCourse?.latitude || !selectedCourse?.longitude) {
@@ -68,6 +107,9 @@ export default function Home() {
 
       setForecast(data.forecast);
       setScore(data.score);
+
+      // Fetch AI summary in parallel (fire-and-forget)
+      fetchSummary(selectedCourse.club_name, data.forecast, data.score);
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
@@ -79,6 +121,8 @@ export default function Home() {
     setSelectedCourse(course);
     setForecast(null);
     setScore(null);
+    setSummary(null);
+    setSummaryError(false);
     setError(null);
   }
 
@@ -132,6 +176,13 @@ export default function Home() {
           <h2 className="text-2xl font-heading mb-4">
             {selectedCourse.club_name}
           </h2>
+          <div className="mb-4">
+            <ForecastSummary
+              summary={summary}
+              loading={summaryLoading}
+              error={summaryError}
+            />
+          </div>
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6">
             <WeatherDashboard
               forecast={forecast}
