@@ -27,12 +27,14 @@ export const metadata: Metadata = {
       "Search any golf course, pick your tee time, and see the full weather forecast for your round.",
     type: "website",
     siteName: "Golf Weather",
+    images: [{ url: "/image.png" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "Golf Weather",
     description:
       "Search any golf course, pick your tee time, and see the full weather forecast for your round.",
+    images: ["/image.png"],
   },
 };
 
