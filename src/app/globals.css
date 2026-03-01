@@ -61,6 +61,12 @@
   }
 }
 
+/* iOS date input fix */
+input[type="date"] {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
 /* Leaflet overrides */
 .leaflet-container {
   font-family: inherit;
