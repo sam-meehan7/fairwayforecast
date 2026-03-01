@@ -8,14 +8,31 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://www.fairwayforecast.app"),
   title: "Golf Weather — Course Forecast Lookup",
   description:
     "Search any golf course, pick your tee time, and see the full weather forecast for your round.",
+  icons: {
+    icon: [
+      { url: "/favicon.ico", sizes: "48x48" },
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon-96x96.png", sizes: "96x96", type: "image/png" },
+    ],
+    apple: "/apple-touch-icon.png",
+  },
+  manifest: "/site.webmanifest",
   openGraph: {
     title: "Golf Weather",
     description:
       "Search any golf course, pick your tee time, and see the full weather forecast for your round.",
     type: "website",
+    siteName: "Golf Weather",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Golf Weather",
+    description:
+      "Search any golf course, pick your tee time, and see the full weather forecast for your round.",
   },
 };
 
