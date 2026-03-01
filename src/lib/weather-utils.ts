@@ -1,47 +1,39 @@
 import type { HourlyWeather } from "./types";
 
-const WMO_CODES: Record<number, { text: string; icon: string }> = {
-  0: { text: "Clear sky", icon: "Sun" },
-  1: { text: "Mainly clear", icon: "Sun" },
-  2: { text: "Partly cloudy", icon: "CloudSun" },
-  3: { text: "Overcast", icon: "Cloud" },
-  45: { text: "Fog", icon: "CloudFog" },
-  48: { text: "Depositing rime fog", icon: "CloudFog" },
-  51: { text: "Light drizzle", icon: "CloudDrizzle" },
-  53: { text: "Moderate drizzle", icon: "CloudDrizzle" },
-  55: { text: "Dense drizzle", icon: "CloudDrizzle" },
-  56: { text: "Light freezing drizzle", icon: "CloudDrizzle" },
-  57: { text: "Dense freezing drizzle", icon: "CloudDrizzle" },
-  61: { text: "Slight rain", icon: "CloudRain" },
-  63: { text: "Moderate rain", icon: "CloudRain" },
-  65: { text: "Heavy rain", icon: "CloudRainWind" },
-  66: { text: "Light freezing rain", icon: "CloudRain" },
-  67: { text: "Heavy freezing rain", icon: "CloudRainWind" },
-  71: { text: "Slight snow", icon: "CloudSnow" },
-  73: { text: "Moderate snow", icon: "CloudSnow" },
-  75: { text: "Heavy snow", icon: "CloudSnow" },
-  77: { text: "Snow grains", icon: "CloudSnow" },
-  80: { text: "Slight rain showers", icon: "CloudRain" },
-  81: { text: "Moderate rain showers", icon: "CloudRain" },
-  82: { text: "Violent rain showers", icon: "CloudRainWind" },
-  85: { text: "Slight snow showers", icon: "CloudSnow" },
-  86: { text: "Heavy snow showers", icon: "CloudSnow" },
-  95: { text: "Thunderstorm", icon: "CloudLightning" },
-  96: { text: "Thunderstorm with slight hail", icon: "CloudLightning" },
-  99: { text: "Thunderstorm with heavy hail", icon: "CloudLightning" },
+const TOMORROW_CODES: Record<number, { text: string; icon: string }> = {
+  1000: { text: "Clear sky", icon: "Sun" },
+  1100: { text: "Mostly clear", icon: "Sun" },
+  1101: { text: "Partly cloudy", icon: "CloudSun" },
+  1102: { text: "Mostly cloudy", icon: "Cloud" },
+  1001: { text: "Cloudy", icon: "Cloud" },
+  2100: { text: "Light fog", icon: "CloudFog" },
+  2000: { text: "Fog", icon: "CloudFog" },
+  4000: { text: "Drizzle", icon: "CloudDrizzle" },
+  4200: { text: "Light rain", icon: "CloudRain" },
+  4001: { text: "Rain", icon: "CloudRain" },
+  4201: { text: "Heavy rain", icon: "CloudRainWind" },
+  5001: { text: "Flurries", icon: "CloudSnow" },
+  5100: { text: "Light snow", icon: "CloudSnow" },
+  5000: { text: "Snow", icon: "CloudSnow" },
+  5101: { text: "Heavy snow", icon: "CloudSnow" },
+  6000: { text: "Freezing drizzle", icon: "CloudDrizzle" },
+  6200: { text: "Light freezing rain", icon: "CloudRain" },
+  6001: { text: "Freezing rain", icon: "CloudRain" },
+  6201: { text: "Heavy freezing rain", icon: "CloudRainWind" },
+  8000: { text: "Thunderstorm", icon: "CloudLightning" },
 };
 
 export function getWeatherDescription(code: number): {
   text: string;
   icon: string;
 } {
-  return WMO_CODES[code] ?? { text: "Unknown", icon: "Cloud" };
+  return TOMORROW_CODES[code] ?? { text: "Unknown", icon: "Cloud" };
 }
 
 export function getLightningRisk(
   weatherCodes: number[]
 ): { level: string; warning: string } | null {
-  const hasThunderstorm = weatherCodes.some((c) => c >= 95);
+  const hasThunderstorm = weatherCodes.some((c) => c === 8000);
   if (hasThunderstorm) {
     return {
       level: "High",
