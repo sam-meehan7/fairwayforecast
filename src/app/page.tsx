@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { Loader2 } from "lucide-react";
 import { CourseSearch } from "@/components/course-search";
 import { DateTimePicker } from "@/components/date-time-picker";
 import { WeatherDashboard } from "@/components/weather-dashboard";
 import { ForecastSummary } from "@/components/forecast-summary";
+import { ShareButton } from "@/components/share-button";
 import { Footer } from "@/components/footer";
 import { Button } from "@/components/ui/button";
 import type {
@@ -45,6 +46,8 @@ export default function Home() {
 
   async function fetchSummary(
     courseName: string,
+    summaryDate: string,
+    summaryTeeTime: number,
     forecastData: RoundForecast,
     scoreData: PlayabilityScore
   ) {
@@ -57,8 +60,8 @@ export default function Home() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           courseName,
-          date,
-          teeTime: Math.floor(teeTime),
+          date: summaryDate,
+          teeTime: summaryTeeTime,
           forecast: forecastData,
           score: scoreData,
         }),
@@ -78,8 +81,12 @@ export default function Home() {
     }
   }
 
-  async function fetchWeather() {
-    if (!selectedCourse?.latitude || !selectedCourse?.longitude) {
+  async function fetchWeatherFor(
+    course: GolfCourseResult,
+    weatherDate: string,
+    weatherTeeTime: number
+  ) {
+    if (!course.latitude || !course.longitude) {
       setError(
         "This course doesn't have location data. Try a different course."
       );
@@ -91,10 +98,10 @@ export default function Home() {
 
     try {
       const params = new URLSearchParams({
-        lat: String(selectedCourse.latitude),
-        lng: String(selectedCourse.longitude),
-        date,
-        teeTime: String(Math.floor(teeTime)),
+        lat: String(course.latitude),
+        lng: String(course.longitude),
+        date: weatherDate,
+        teeTime: String(Math.floor(weatherTeeTime)),
       });
 
       const res = await fetch(`/api/weather?${params}`);
@@ -109,13 +116,60 @@ export default function Home() {
       setScore(data.score);
 
       // Fetch AI summary in parallel (fire-and-forget)
-      fetchSummary(selectedCourse.club_name, data.forecast, data.score);
+      fetchSummary(
+        course.club_name,
+        weatherDate,
+        Math.floor(weatherTeeTime),
+        data.forecast,
+        data.score
+      );
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }
   }
+
+  function fetchWeather() {
+    if (selectedCourse) {
+      fetchWeatherFor(selectedCourse, date, teeTime);
+    }
+  }
+
+  // Auto-fetch from shared link params
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const name = params.get("name");
+    const lat = params.get("lat");
+    const lng = params.get("lng");
+    const dateParam = params.get("date");
+    const t = params.get("t");
+
+    if (name && lat && lng) {
+      const course: GolfCourseResult = {
+        id: `${lat},${lng}`,
+        club_name: name,
+        course_name: name,
+        latitude: Number(lat),
+        longitude: Number(lng),
+        address: "",
+        city: "",
+        state: "",
+        country: "",
+      };
+
+      const sharedDate = dateParam || getTomorrow();
+      const sharedTeeTime = t ? Number(t) : 8;
+
+      setSelectedCourse(course);
+      setDate(sharedDate);
+      setTeeTime(sharedTeeTime);
+
+      window.history.replaceState({}, "", "/");
+
+      fetchWeatherFor(course, sharedDate, sharedTeeTime);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleCourseSelect(course: GolfCourseResult) {
     setSelectedCourse(course);
@@ -140,7 +194,10 @@ export default function Home() {
 
       {/* Search Controls */}
       <section className="max-w-xl mx-auto px-6 space-y-3">
-        <CourseSearch onSelect={handleCourseSelect} />
+        <CourseSearch
+          onSelect={handleCourseSelect}
+          initialValue={selectedCourse?.club_name}
+        />
         <DateTimePicker
           date={date}
           teeTime={teeTime}
@@ -173,9 +230,16 @@ export default function Home() {
       {/* Results */}
       {forecast && score && selectedCourse && (
         <section className="max-w-6xl mx-auto px-6 mt-8">
-          <h2 className="text-2xl font-heading mb-4">
-            {selectedCourse.club_name}
-          </h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-2xl font-heading">
+              {selectedCourse.club_name}
+            </h2>
+            <ShareButton
+              course={selectedCourse}
+              date={date}
+              teeTime={teeTime}
+            />
+          </div>
           <div className="mb-4">
             <ForecastSummary
               summary={summary}

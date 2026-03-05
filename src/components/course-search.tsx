@@ -6,15 +6,16 @@ import type { GolfCourseResult } from "@/lib/types";
 
 interface CourseSearchProps {
   onSelect: (course: GolfCourseResult) => void;
+  initialValue?: string;
 }
 
-export function CourseSearch({ onSelect }: CourseSearchProps) {
-  const [query, setQuery] = useState("");
+export function CourseSearch({ onSelect, initialValue }: CourseSearchProps) {
+  const [query, setQuery] = useState(initialValue || "");
   const [results, setResults] = useState<GolfCourseResult[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [highlightIndex, setHighlightIndex] = useState(-1);
-  const [selectedName, setSelectedName] = useState("");
+  const [selectedName, setSelectedName] = useState(initialValue || "");
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -63,6 +64,13 @@ export function CourseSearch({ onSelect }: CourseSearchProps) {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    if (initialValue) {
+      setQuery(initialValue);
+      setSelectedName(initialValue);
+    }
+  }, [initialValue]);
 
   function handleSelect(course: GolfCourseResult) {
     const name = course.club_name;

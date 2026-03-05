@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
+import { getSupabaseAdmin } from "@/lib/supabase";
 import type {
   RoundForecast,
   PlayabilityScore,
@@ -55,6 +56,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    const cacheKey = `${courseName}|${date}|${teeTime}`;
+    const supabase = getSupabaseAdmin();
+
+    // Check cache (1 hour TTL)
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
+    const { data: cached } = await supabase
+      .from("summary_cache")
+      .select("summary")
+      .eq("cache_key", cacheKey)
+      .gte("created_at", oneHourAgo)
+      .single();
+
+    if (cached) {
+      return NextResponse.json({ summary: cached.summary });
+    }
+
     const weatherContext = buildWeatherContext(forecast, score, teeTime);
 
     const message = await anthropic.messages.create({
@@ -78,6 +95,14 @@ Write the summary now. No greeting, no heading, just the summary sentences.`,
 
     const summary =
       message.content[0].type === "text" ? message.content[0].text.trim() : "";
+
+    // Cache the result (upsert to handle expired entries)
+    await supabase
+      .from("summary_cache")
+      .upsert(
+        { cache_key: cacheKey, summary, created_at: new Date().toISOString() },
+        { onConflict: "cache_key" }
+      );
 
     return NextResponse.json({ summary });
   } catch (err) {
