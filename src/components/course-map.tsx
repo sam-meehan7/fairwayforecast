@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import WindParticles from "./wind-particles";
 
 // Fix default marker icon path issue with webpack
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -105,12 +106,15 @@ export default function CourseMap({
           </Popup>
         </Marker>
         {windDirection !== undefined && windSpeed !== undefined && (
-          <WindArrow
-            lat={latitude}
-            lng={longitude}
-            direction={windDirection}
-            speed={windSpeed}
-          />
+          <>
+            <WindParticles direction={windDirection} speed={windSpeed} />
+            <WindArrow
+              lat={latitude}
+              lng={longitude}
+              direction={windDirection}
+              speed={windSpeed}
+            />
+          </>
         )}
       </MapContainer>
     </div>
