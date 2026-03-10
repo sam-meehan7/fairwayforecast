@@ -46,7 +46,7 @@ function WindArrow({
 
     const icon = L.divIcon({
       className: "wind-arrow-icon",
-      html: `<div style="transform: rotate(${direction}deg); display: flex; flex-direction: column; align-items: center;">
+      html: `<div style="transform: rotate(${(direction + 180) % 360}deg); display: flex; flex-direction: column; align-items: center;">
         <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
           <circle cx="20" cy="20" r="18" fill="white" stroke="black" stroke-width="2"/>
           <path d="M20 6 L25 18 L20 15 L15 18 Z" fill="black"/>

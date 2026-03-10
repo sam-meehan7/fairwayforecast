@@ -37,7 +37,7 @@ export function WindDisplay({ direction, speed, gusts, unit }: WindDisplayProps)
               <text x="50" y="96" textAnchor="middle" className="text-[10px] font-bold fill-current">S</text>
               <text x="10" y="54" textAnchor="middle" className="text-[10px] font-bold fill-current">W</text>
               {/* Arrow */}
-              <g transform={`rotate(${direction} 50 50)`}>
+              <g transform={`rotate(${(direction + 180) % 360} 50 50)`}>
                 <polygon points="50,18 44,42 50,38 56,42" fill="currentColor" className="text-main" />
                 <line x1="50" y1="38" x2="50" y2="72" stroke="currentColor" strokeWidth="2" className="text-main" />
               </g>
