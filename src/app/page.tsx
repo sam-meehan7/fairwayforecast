@@ -9,6 +9,7 @@ import { WeatherDashboard } from "@/components/weather-dashboard";
 import { ForecastSummary } from "@/components/forecast-summary";
 import { ShareButton } from "@/components/share-button";
 import { Footer } from "@/components/footer";
+import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import type {
   GolfCourseResult,
@@ -185,10 +186,11 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-background">
       {/* Header */}
-      <header className="text-center py-8 px-6">
-        <h1 className="text-4xl font-heading">Golf Weather</h1>
-        <p className="mt-2 text-lg text-foreground/70">
-          Search your course. Pick your tee time. Know what to expect.
+      <header className="flex flex-col items-center py-8 px-6">
+        <Logo />
+        <p className="mt-3 text-lg text-foreground/70 text-center">
+          Local golf weather forecasts — search your course, pick your
+          tee time, know what to expect.
         </p>
       </header>
 

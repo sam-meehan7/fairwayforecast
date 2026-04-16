@@ -11,9 +11,9 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.fairwayforecast.app"),
-  title: "Golf Weather — Course Forecast Lookup",
+  title: "FairwayForecast — Golf Weather Forecasts for Any Course",
   description:
-    "Search any golf course, pick your tee time, and see the full weather forecast for your round.",
+    "Local golf weather forecasts for any course. Search your course, pick your tee time, and see wind, rain, and temperature for your full round.",
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "48x48" },
@@ -24,19 +24,37 @@ export const metadata: Metadata = {
   },
   manifest: "/site.webmanifest",
   openGraph: {
-    title: "Golf Weather",
+    title: "FairwayForecast — Golf Weather Forecasts for Any Course",
     description:
-      "Search any golf course, pick your tee time, and see the full weather forecast for your round.",
+      "Local golf weather forecasts for any course. Search your course, pick your tee time, and see wind, rain, and temperature for your full round.",
     type: "website",
-    siteName: "Golf Weather",
-    images: [{ url: "/image.png" }],
+    siteName: "FairwayForecast",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Golf Weather",
+    title: "FairwayForecast — Golf Weather Forecasts for Any Course",
     description:
-      "Search any golf course, pick your tee time, and see the full weather forecast for your round.",
-    images: ["/image.png"],
+      "Local golf weather forecasts for any course. Search your course, pick your tee time, and see wind, rain, and temperature for your full round.",
+  },
+  alternates: {
+    canonical: "/",
+  },
+};
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  name: "FairwayForecast",
+  alternateName: "Fairway Forecast",
+  url: "https://www.fairwayforecast.app",
+  description:
+    "Local golf weather forecasts for any course. Search your course, pick your tee time, and see wind, rain, and temperature for your full round.",
+  applicationCategory: "SportsApplication",
+  operatingSystem: "Web",
+  offers: {
+    "@type": "Offer",
+    price: "0",
+    priceCurrency: "USD",
   },
 };
 
@@ -48,6 +66,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
         <Providers>{children}</Providers>
         <Analytics />
       </body>

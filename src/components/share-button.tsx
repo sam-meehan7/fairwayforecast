@@ -31,7 +31,7 @@ export function ShareButton({ course, date, teeTime }: ShareButtonProps) {
       const isMobile = /Mobi|Android/i.test(navigator.userAgent);
       if (navigator.share && isMobile) {
         await navigator.share({
-          title: `Golf Weather - ${course.club_name}`,
+          title: `FairwayForecast — ${course.club_name}`,
           text: `Check out the forecast for ${course.club_name}`,
           url: shareUrl,
         });
