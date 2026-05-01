@@ -11,11 +11,14 @@ import { ShareButton } from "@/components/share-button";
 import { Footer } from "@/components/footer";
 import { Logo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
+import { ComingSoonModal } from "@/components/coming-soon-modal";
 import type {
   GolfCourseResult,
   RoundForecast,
   PlayabilityScore,
 } from "@/lib/types";
+
+const FF_INTEREST_DISMISSED = "ff_interest_dismissed_v1";
 
 const CourseMap = dynamic(() => import("@/components/course-map"), {
   ssr: false,
@@ -47,6 +50,7 @@ export default function Home() {
   const [summary, setSummary] = useState<string | null>(null);
   const [summaryLoading, setSummaryLoading] = useState(false);
   const [summaryError, setSummaryError] = useState(false);
+  const [showComingSoon, setShowComingSoon] = useState(false);
 
   async function fetchSummary(
     courseName: string,
@@ -119,6 +123,13 @@ export default function Home() {
       setForecast(data.forecast);
       setScore(data.score);
 
+      if (
+        typeof window !== "undefined" &&
+        !localStorage.getItem(FF_INTEREST_DISMISSED)
+      ) {
+        setTimeout(() => setShowComingSoon(true), 800);
+      }
+
       // Fetch AI summary in parallel (fire-and-forget)
       fetchSummary(
         course.club_name,
@@ -188,6 +199,15 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-background">
+      <ComingSoonModal
+        open={showComingSoon}
+        onClose={() => {
+          if (typeof window !== "undefined") {
+            localStorage.setItem(FF_INTEREST_DISMISSED, "1");
+          }
+          setShowComingSoon(false);
+        }}
+      />
       {/* Header */}
       <header className="flex flex-col items-center py-8 px-6">
         <Logo />
