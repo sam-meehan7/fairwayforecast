@@ -31,7 +31,12 @@ function getDateRange() {
   const max = new Date();
   max.setDate(max.getDate() + 14);
 
-  const format = (d: Date) => d.toISOString().split("T")[0];
+  const format = (d: Date) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  };
   return { min: format(today), max: format(max) };
 }
 
