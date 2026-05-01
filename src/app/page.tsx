@@ -123,6 +123,18 @@ export default function Home() {
       setForecast(data.forecast);
       setScore(data.score);
 
+      fetch("/api/track-search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          courseName: course.club_name,
+          latitude: course.latitude,
+          longitude: course.longitude,
+          date: weatherDate,
+          teeTime: Math.floor(weatherTeeTime),
+        }),
+      }).catch(() => {});
+
       if (
         typeof window !== "undefined" &&
         !localStorage.getItem(FF_INTEREST_DISMISSED)

@@ -12,6 +12,17 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+type GtagWindow = Window & {
+  gtag?: (command: string, action: string, params?: Record<string, unknown>) => void;
+};
+
+function trackDismiss(method: "close_icon" | "maybe_later") {
+  if (typeof window === "undefined") return;
+  (window as GtagWindow).gtag?.("event", "coming_soon_dismiss", { method });
+}
+
 type Status = "idle" | "submitting" | "success" | "error";
 
 interface ComingSoonModalProps {
@@ -50,8 +61,16 @@ export function ComingSoonModal({ open, onClose }: ComingSoonModalProps) {
 
   if (!open) return null;
 
+  const trimmedEmail = email.trim();
+  const isValidEmail = EMAIL_RE.test(trimmedEmail);
+
   async function submit() {
     if (status === "submitting") return;
+    if (!isValidEmail) {
+      setErrorMsg("That email doesn't look right.");
+      setStatus("error");
+      return;
+    }
 
     setStatus("submitting");
     setErrorMsg(null);
@@ -60,7 +79,7 @@ export function ComingSoonModal({ open, onClose }: ComingSoonModalProps) {
       const res = await fetch("/api/interest", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email: trimmedEmail }),
       });
 
       if (!res.ok) {
@@ -94,7 +113,10 @@ export function ComingSoonModal({ open, onClose }: ComingSoonModalProps) {
       <Card className="relative w-full max-w-md">
         <button
           type="button"
-          onClick={onClose}
+          onClick={() => {
+            trackDismiss("close_icon");
+            onClose();
+          }}
           aria-label="Close"
           className="absolute right-3 top-3 rounded-base p-1 text-foreground/60 transition-colors hover:bg-background hover:text-foreground"
         >
@@ -165,7 +187,10 @@ export function ComingSoonModal({ open, onClose }: ComingSoonModalProps) {
             <Button
               type="button"
               variant="neutral"
-              onClick={onClose}
+              onClick={() => {
+                trackDismiss("maybe_later");
+                onClose();
+              }}
               disabled={status === "submitting"}
             >
               Maybe later
@@ -173,7 +198,7 @@ export function ComingSoonModal({ open, onClose }: ComingSoonModalProps) {
             <Button
               type="button"
               onClick={submit}
-              disabled={status === "submitting" || !email}
+              disabled={status === "submitting" || !isValidEmail}
             >
               {status === "submitting" ? (
                 <>
