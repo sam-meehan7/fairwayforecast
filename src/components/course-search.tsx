@@ -111,7 +111,7 @@ export function CourseSearch({ onSelect, initialValue }: CourseSearchProps) {
           }}
           onFocus={() => results.length > 0 && setIsOpen(true)}
           onKeyDown={handleKeyDown}
-          placeholder="Search golf courses..."
+          placeholder="Search Irish golf courses..."
           className="w-full h-12 pl-11 pr-10 rounded-base border-2 border-border bg-secondary-background text-foreground font-base placeholder:text-foreground/40 focus:outline-none focus:ring-2 focus:ring-main"
         />
         {loading && (
@@ -151,7 +151,10 @@ export function CourseSearch({ onSelect, initialValue }: CourseSearchProps) {
 
       {isOpen && !loading && query.length >= 2 && results.length === 0 && (
         <div className="absolute z-50 w-full mt-1 bg-secondary-background border-2 border-border rounded-base shadow-shadow px-4 py-3 text-sm text-foreground/60">
-          No courses found for &ldquo;{query}&rdquo;
+          <div>No courses found for &ldquo;{query}&rdquo;</div>
+          <div className="mt-1 text-xs text-foreground/45">
+            FairwayForecast currently covers courses in Ireland.
+          </div>
         </div>
       )}
     </div>

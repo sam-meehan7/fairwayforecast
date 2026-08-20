@@ -224,8 +224,8 @@ export default function Home() {
       <header className="flex flex-col items-center py-8 px-6">
         <Logo />
         <p className="mt-3 text-lg text-foreground/70 text-center">
-          Local golf weather forecasts — search your course, pick your
-          tee time, know what to expect.
+          Golf weather forecasts for courses across Ireland — search your
+          course, pick your tee time, know what to expect.
         </p>
       </header>
 

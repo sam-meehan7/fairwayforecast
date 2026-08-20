@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og";
 
 export const ogSize = { width: 1200, height: 630 };
 export const ogAlt =
-  "FairwayForecast — Local golf weather forecasts for any course";
+  "FairwayForecast — Golf weather forecasts for courses across Ireland";
 export const ogContentType = "image/png";
 
 const BRAND_GREEN = "#2d9049";
@@ -112,7 +112,7 @@ export function renderOgImage() {
             maxWidth: 900,
           }}
         >
-          Local golf weather forecasts for any course
+          Golf weather forecasts for courses across Ireland
         </div>
       </div>
     ),

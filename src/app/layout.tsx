@@ -11,9 +11,9 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.fairwayforecast.app"),
-  title: "FairwayForecast — Golf Weather Forecasts for Any Course",
+  title: "FairwayForecast — Golf Weather Forecasts for Irish Courses",
   description:
-    "Local golf weather forecasts for any course. Search your course, pick your tee time, and see wind, rain, and temperature for your full round.",
+    "Golf weather forecasts for courses across Ireland. Search your course, pick your tee time, and see wind, rain, and temperature for your full round.",
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "48x48" },
@@ -24,17 +24,18 @@ export const metadata: Metadata = {
   },
   manifest: "/site.webmanifest",
   openGraph: {
-    title: "FairwayForecast — Golf Weather Forecasts for Any Course",
+    title: "FairwayForecast — Golf Weather Forecasts for Irish Courses",
     description:
-      "Local golf weather forecasts for any course. Search your course, pick your tee time, and see wind, rain, and temperature for your full round.",
+      "Golf weather forecasts for courses across Ireland. Search your course, pick your tee time, and see wind, rain, and temperature for your full round.",
     type: "website",
     siteName: "FairwayForecast",
+    locale: "en_IE",
   },
   twitter: {
     card: "summary_large_image",
-    title: "FairwayForecast — Golf Weather Forecasts for Any Course",
+    title: "FairwayForecast — Golf Weather Forecasts for Irish Courses",
     description:
-      "Local golf weather forecasts for any course. Search your course, pick your tee time, and see wind, rain, and temperature for your full round.",
+      "Golf weather forecasts for courses across Ireland. Search your course, pick your tee time, and see wind, rain, and temperature for your full round.",
   },
   alternates: {
     canonical: "/",
@@ -48,9 +49,13 @@ const jsonLd = {
   alternateName: "Fairway Forecast",
   url: "https://www.fairwayforecast.app",
   description:
-    "Local golf weather forecasts for any course. Search your course, pick your tee time, and see wind, rain, and temperature for your full round.",
+    "Golf weather forecasts for courses across Ireland. Search your course, pick your tee time, and see wind, rain, and temperature for your full round.",
   applicationCategory: "SportsApplication",
   operatingSystem: "Web",
+  areaServed: {
+    "@type": "Country",
+    name: "Ireland",
+  },
   offers: {
     "@type": "Offer",
     price: "0",
