@@ -17,6 +17,11 @@ import type {
   RoundForecast,
   PlayabilityScore,
 } from "@/lib/types";
+import {
+  FORECAST_HORIZON_DAYS,
+  isWithinForecastWindow,
+} from "@/lib/weather-utils";
+import { getDefaultRound } from "@/lib/tee-times";
 
 const FF_INTEREST_DISMISSED = "ff_interest_dismissed_v1";
 
@@ -29,19 +34,12 @@ const CourseMap = dynamic(() => import("@/components/course-map"), {
   ),
 });
 
-function getTomorrow(): string {
-  const d = new Date();
-  d.setDate(d.getDate() + 1);
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
-}
-
 export default function Home() {
   const [selectedCourse, setSelectedCourse] =
     useState<GolfCourseResult | null>(null);
-  const [date, setDate] = useState(getTomorrow);
+  // Both set on mount, not here: this page is prerendered, so a default fixed
+  // at build time would be as stale as the deploy is old.
+  const [date, setDate] = useState("");
   const [teeTime, setTeeTime] = useState(8);
   const [forecast, setForecast] = useState<RoundForecast | null>(null);
   const [score, setScore] = useState<PlayabilityScore | null>(null);
@@ -165,6 +163,7 @@ export default function Home() {
 
   // Auto-fetch from shared link params
   useEffect(() => {
+    const defaultRound = getDefaultRound();
     const params = new URLSearchParams(window.location.search);
     const name = params.get("name");
     const lat = params.get("lat");
@@ -185,16 +184,30 @@ export default function Home() {
         country: "",
       };
 
-      const sharedDate = dateParam || getTomorrow();
-      const sharedTeeTime = t ? Number(t) : 8;
+      const sharedDate = dateParam || defaultRound.date;
+      const sharedTeeTime = t ? Number(t) : defaultRound.teeTime;
 
       setSelectedCourse(course);
-      setDate(sharedDate);
       setTeeTime(sharedTeeTime);
 
       window.history.replaceState({}, "", "/");
 
-      fetchWeatherFor(course, sharedDate, sharedTeeTime);
+      // A shared link carries an absolute date, so by the time it is opened it
+      // can sit outside the forecast window. Fetching anyway returns an empty
+      // forecast rather than an error, so ask for a new date instead.
+      if (isWithinForecastWindow(sharedDate)) {
+        setDate(sharedDate);
+        fetchWeatherFor(course, sharedDate, sharedTeeTime);
+      } else {
+        setDate(defaultRound.date);
+        setTeeTime(defaultRound.teeTime);
+        setError(
+          `This link is for ${sharedDate}, which is outside the ${FORECAST_HORIZON_DAYS}-day forecast window. Pick a new date below.`
+        );
+      }
+    } else {
+      setDate(defaultRound.date);
+      setTeeTime(defaultRound.teeTime);
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 

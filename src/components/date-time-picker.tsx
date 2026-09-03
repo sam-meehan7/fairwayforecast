@@ -1,6 +1,9 @@
 "use client";
 
+import { useSyncExternalStore } from "react";
 import { Calendar, Clock } from "lucide-react";
+import { getForecastDateRange } from "@/lib/weather-utils";
+import { getTeeTimeOptions } from "@/lib/tee-times";
 
 interface DateTimePickerProps {
   date: string;
@@ -9,35 +12,35 @@ interface DateTimePickerProps {
   onTeeTimeChange: (hour: number) => void;
 }
 
-function getTeeTimeOptions() {
-  const options: { value: number; label: string }[] = [];
-  for (let hour = 5; hour <= 18; hour++) {
-    for (const min of [0, 30]) {
-      if (hour === 18 && min === 30) break;
-      const period = hour >= 12 ? "PM" : "AM";
-      const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
-      const displayMin = min === 0 ? "00" : "30";
-      options.push({
-        value: hour + min / 60,
-        label: `${displayHour}:${displayMin} ${period}`,
-      });
-    }
-  }
-  return options;
+// The selectable window depends on the *viewer's* current date, which the
+// prerendered markup can't know: the page is built once and React does not
+// patch attribute mismatches during hydration, so a build-time min/max would
+// stay frozen at the deploy date. Rendering it as an external store leaves the
+// server markup unconstrained and lets the client fill the range in after
+// hydration, re-reading it whenever the tab is focused so a long-open tab
+// survives midnight. The snapshot is a cached string so it stays referentially
+// stable across renders.
+const SERVER_RANGE = "|";
+let cachedRange = SERVER_RANGE;
+
+function getRangeSnapshot() {
+  const { min, max } = getForecastDateRange();
+  const next = `${min}|${max}`;
+  if (next !== cachedRange) cachedRange = next;
+  return cachedRange;
 }
 
-function getDateRange() {
-  const today = new Date();
-  const max = new Date();
-  max.setDate(max.getDate() + 14);
+function getServerRangeSnapshot() {
+  return SERVER_RANGE;
+}
 
-  const format = (d: Date) => {
-    const y = d.getFullYear();
-    const m = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    return `${y}-${m}-${day}`;
+function subscribeToRange(onStoreChange: () => void) {
+  window.addEventListener("focus", onStoreChange);
+  document.addEventListener("visibilitychange", onStoreChange);
+  return () => {
+    window.removeEventListener("focus", onStoreChange);
+    document.removeEventListener("visibilitychange", onStoreChange);
   };
-  return { min: format(today), max: format(max) };
 }
 
 const teeTimeOptions = getTeeTimeOptions();
@@ -48,7 +51,11 @@ export function DateTimePicker({
   onDateChange,
   onTeeTimeChange,
 }: DateTimePickerProps) {
-  const { min, max } = getDateRange();
+  const [min, max] = useSyncExternalStore(
+    subscribeToRange,
+    getRangeSnapshot,
+    getServerRangeSnapshot,
+  ).split("|");
 
   return (
     <div className="flex flex-col sm:flex-row gap-3">
@@ -57,8 +64,8 @@ export function DateTimePicker({
         <input
           type="date"
           value={date}
-          min={min}
-          max={max}
+          min={min || undefined}
+          max={max || undefined}
           onChange={(e) => onDateChange(e.target.value)}
           className="w-full h-12 pl-11 pr-4 rounded-base border-2 border-border bg-secondary-background text-foreground font-base focus:outline-none focus:ring-2 focus:ring-main"
         />

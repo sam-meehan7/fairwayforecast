@@ -100,3 +100,29 @@ export function getGolfTips(hourly: HourlyWeather[]): string[] {
 
   return tips;
 }
+
+// tomorrow.io's hourly timeline only runs 5 days out. Past that, the response
+// still succeeds but contains no hours matching the requested date, which
+// surfaces as an empty forecast rather than an error — so the date has to be
+// constrained before we ask for it.
+export const FORECAST_HORIZON_DAYS = 5;
+
+export function formatLocalDate(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+// Computed from the caller's clock, so this must only be used where the
+// viewer's local date is the right frame of reference.
+export function getForecastDateRange(): { min: string; max: string } {
+  const max = new Date();
+  max.setDate(max.getDate() + FORECAST_HORIZON_DAYS);
+  return { min: formatLocalDate(new Date()), max: formatLocalDate(max) };
+}
+
+export function isWithinForecastWindow(date: string): boolean {
+  const { min, max } = getForecastDateRange();
+  return date >= min && date <= max;
+}
