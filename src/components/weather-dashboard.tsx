@@ -1,5 +1,9 @@
 import type { RoundForecast, PlayabilityScore } from "@/lib/types";
-import { getGolfTips } from "@/lib/weather-utils";
+import {
+  getGolfTips,
+  maxRainChance,
+  totalPrecipitation,
+} from "@/lib/weather-utils";
 import { PlayabilityScoreCard } from "@/components/playability-score";
 import { HourlyForecast } from "@/components/hourly-forecast";
 import { WindDisplay } from "@/components/wind-display";
@@ -40,7 +44,8 @@ export function WeatherDashboard({
   const avgWind =
     hourly.reduce((sum, h) => sum + h.wind_speed, 0) / hourly.length;
   const maxGust = Math.max(...hourly.map((h) => h.wind_gusts));
-  const maxRain = Math.max(...hourly.map((h) => h.precipitation_probability));
+  const maxRain = maxRainChance(hourly);
+  const totalRain = totalPrecipitation(hourly);
   const maxUV = Math.max(...hourly.map((h) => h.uv_index));
   const avgHumidity =
     hourly.reduce((sum, h) => sum + h.relative_humidity, 0) / hourly.length;
@@ -67,8 +72,16 @@ export function WeatherDashboard({
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-4">
               <Droplets className="size-5 text-blue-500 mb-1" />
-              <div className="text-2xl font-heading">{maxRain}%</div>
-              <div className="text-xs text-foreground/60">Max Rain Chance</div>
+              <div className="text-2xl font-heading">
+                {maxRain != null
+                  ? `${maxRain}%`
+                  : totalRain != null
+                  ? `${Math.round(totalRain * 10) / 10} mm`
+                  : "—"}
+              </div>
+              <div className="text-xs text-foreground/60">
+                {maxRain != null ? "Max Rain Chance" : "Expected Rainfall"}
+              </div>
             </CardContent>
           </Card>
 

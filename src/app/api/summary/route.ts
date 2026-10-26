@@ -7,7 +7,11 @@ import type {
   HourlyWeather,
 } from "@/lib/types";
 import { getWeatherDescription } from "@/lib/weather-utils";
-import { degreesToDirection } from "@/lib/weather";
+import {
+  degreesToDirection,
+  formatLocalHour,
+  formatLocalTime,
+} from "@/lib/weather";
 
 const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -23,14 +27,17 @@ function buildWeatherContext(
   const hourLines = hourly.map((h: HourlyWeather) => {
     const weather = getWeatherDescription(h.weather_code);
     const dir = degreesToDirection(h.wind_direction);
-    const hour = new Date(h.time).getHours();
-    const period = hour >= 12 ? "PM" : "AM";
-    const display = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
-    return `${display}${period}: ${Math.round(h.temperature)}${units.temperature} (feels ${Math.round(h.apparent_temperature)}${units.temperature}), ${weather.text}, wind ${Math.round(h.wind_speed)} ${units.wind_speed} ${dir} gusting ${Math.round(h.wind_gusts)}, rain ${h.precipitation_probability}%, UV ${h.uv_index}`;
+    return `${formatLocalHour(h.time)}: ${Math.round(h.temperature)}${units.temperature} (feels ${Math.round(h.apparent_temperature)}${units.temperature}), ${weather.text}, wind ${Math.round(h.wind_speed)} ${units.wind_speed} ${dir} gusting ${Math.round(h.wind_gusts)}, ${
+      h.precipitation_probability != null
+        ? `rain ${h.precipitation_probability}%`
+        : h.precipitation != null
+        ? `rain chance not available, ${h.precipitation} mm expected`
+        : "rain not available"
+    }, UV ${h.uv_index}`;
   });
 
   return `Playability: ${score.overall}/100 (${score.label})
-Sunrise: ${daily.sunrise.split("T")[1]} / Sunset: ${daily.sunset.split("T")[1]}
+Sunrise: ${formatLocalTime(daily.sunrise)} / Sunset: ${formatLocalTime(daily.sunset)}
 
 Hourly during round:
 ${hourLines.join("\n")}

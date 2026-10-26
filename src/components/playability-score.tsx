@@ -11,7 +11,7 @@ function ScoreBar({
   description,
 }: {
   label: string;
-  value: number;
+  value: number | null;
   description?: string;
 }) {
   return (
@@ -21,10 +21,10 @@ function ScoreBar({
         <div className="flex-1 h-2 bg-background rounded-full border border-border">
           <div
             className="h-full bg-main rounded-full transition-all"
-            style={{ width: `${value}%` }}
+            style={{ width: `${value ?? 0}%` }}
           />
         </div>
-        <span className="text-xs font-heading w-8 text-right">{value}</span>
+        <span className="text-xs font-heading w-8 text-right">{value ?? "—"}</span>
       </div>
       {description && (
         <p className="text-[11px] text-foreground/50 ml-[72px]">{description}</p>
@@ -51,7 +51,7 @@ export function PlayabilityScoreCard({ score }: PlayabilityScoreProps) {
         <div className="w-full space-y-2">
           <ScoreBar label="Temp" value={score.temperature} description={score.temperatureDesc} />
           <ScoreBar label="Wind" value={score.wind} description={score.windDesc} />
-          <ScoreBar label="Rain" value={score.rain} description={score.rainDesc} />
+          <ScoreBar label="Rain" value={score.rainBasis === "unavailable" ? null : score.rain} description={score.rainDesc} />
           <ScoreBar label="Visibility" value={score.visibility} description={score.visibilityDesc} />
         </div>
       </CardContent>

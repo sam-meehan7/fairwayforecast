@@ -1,4 +1,5 @@
 import type { HourlyWeather, PlayabilityScore } from "./types";
+import { maxRainChance, totalPrecipitation } from "./weather-utils.ts";
 
 export function calculatePlayabilityScore(
   hourly: HourlyWeather[]
@@ -12,6 +13,7 @@ export function calculatePlayabilityScore(
       windDesc: "",
       rain: 0,
       rainDesc: "",
+      rainBasis: "unavailable",
       visibility: 0,
       visibilityDesc: "",
       label: "No Data",
@@ -23,7 +25,8 @@ export function calculatePlayabilityScore(
     hourly.reduce((sum, h) => sum + h.temperature, 0) / hourly.length;
   const avgWind =
     hourly.reduce((sum, h) => sum + h.wind_speed, 0) / hourly.length;
-  const maxRain = Math.max(...hourly.map((h) => h.precipitation_probability));
+  const maxRain = maxRainChance(hourly);
+  const totalRain = totalPrecipitation(hourly);
   const avgVisibility =
     hourly.reduce((sum, h) => sum + h.visibility, 0) / hourly.length;
 
@@ -49,8 +52,22 @@ export function calculatePlayabilityScore(
     windScore = Math.max(0, 30 - ((avgWind - 40) / 16) * 30);
   }
 
-  // Rain score: based on max probability during round
-  const rainScore = Math.max(0, 100 - maxRain);
+  // Rain score: based on max probability during round. Far out, the forecast
+  // can omit the chance entirely; that is not "0%", so fall back to the
+  // expected rainfall (10 mm over the round scores 0), and if that is missing
+  // too, leave rain out of the overall rather than score it as perfect.
+  let rainScore: number | null;
+  let rainBasis: PlayabilityScore["rainBasis"];
+  if (maxRain != null) {
+    rainScore = Math.max(0, 100 - maxRain);
+    rainBasis = "probability";
+  } else if (totalRain != null) {
+    rainScore = Math.max(0, 100 - totalRain * 10);
+    rainBasis = "amount";
+  } else {
+    rainScore = null;
+    rainBasis = "unavailable";
+  }
 
   // Visibility score: >10000m (10km) = 100, <1000m (1km) = 0
   let visScore: number;
@@ -64,7 +81,9 @@ export function calculatePlayabilityScore(
 
   // Weighted overall: wind and rain matter most for golf
   const overall = Math.round(
-    tempScore * 0.25 + windScore * 0.3 + rainScore * 0.3 + visScore * 0.15
+    rainScore == null
+      ? (tempScore * 0.25 + windScore * 0.3 + visScore * 0.15) / 0.7
+      : tempScore * 0.25 + windScore * 0.3 + rainScore * 0.3 + visScore * 0.15
   );
 
   let label: string;
@@ -92,8 +111,9 @@ export function calculatePlayabilityScore(
     temperatureDesc: getTemperatureDesc(Math.round(tempScore), avgTemp),
     wind: Math.round(windScore),
     windDesc: getWindDesc(Math.round(windScore)),
-    rain: Math.round(rainScore),
-    rainDesc: getRainDesc(Math.round(rainScore)),
+    rain: Math.round(rainScore ?? 0),
+    rainDesc: getRainDescFor(rainScore, rainBasis),
+    rainBasis,
     visibility: Math.round(visScore),
     visibilityDesc: getVisibilityDesc(Math.round(visScore)),
     label,
@@ -115,6 +135,15 @@ function getWindDesc(score: number): string {
   if (score >= 40) return "Will be windy out there!";
   if (score >= 20) return "Strong winds, expect challenges";
   return "Brutal wind, good luck!";
+}
+
+function getRainDescFor(
+  score: number | null,
+  basis: PlayabilityScore["rainBasis"]
+): string {
+  if (score == null) return "Rain forecast not available this far out";
+  const desc = getRainDesc(Math.round(score));
+  return basis === "amount" ? `${desc} (by expected rainfall)` : desc;
 }
 
 function getRainDesc(score: number): string {

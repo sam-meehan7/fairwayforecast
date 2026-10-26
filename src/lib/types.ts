@@ -87,7 +87,11 @@ export interface HourlyWeather {
   time: string;
   temperature: number;
   apparent_temperature: number;
-  precipitation_probability: number;
+  // null where the model publishes no chance this far out (Open-Meteo drops it
+  // around day 10 for some regions). Never treat it as 0%.
+  precipitation_probability: number | null;
+  // Expected rainfall in mm for the hour; null only at the very end of range.
+  precipitation: number | null;
   wind_speed: number;
   wind_direction: number;
   wind_gusts: number;
@@ -124,6 +128,9 @@ export interface PlayabilityScore {
   windDesc: string;
   rain: number;
   rainDesc: string;
+  // Where the rain score came from: the chance of rain, the expected amount
+  // when no chance is published, or nothing (then rain is left out of overall).
+  rainBasis: "probability" | "amount" | "unavailable";
   visibility: number;
   visibilityDesc: string;
   label: string;

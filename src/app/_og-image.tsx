@@ -5,6 +5,11 @@ export const ogAlt =
   "FairwayForecast — Golf weather forecasts for courses across Ireland";
 export const ogContentType = "image/png";
 
+// Pages that set their own `openGraph` / `twitter` metadata replace the root
+// segment's, images included, so they point back at these explicitly.
+export const OG_IMAGE = { url: "/opengraph-image", ...ogSize, alt: ogAlt };
+export const TWITTER_IMAGE = { url: "/twitter-image", ...ogSize, alt: ogAlt };
+
 const BRAND_GREEN = "#2d9049";
 const BG = "#ecf4e6";
 const INK = "#0a0a0a";

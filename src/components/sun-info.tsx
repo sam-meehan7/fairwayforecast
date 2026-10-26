@@ -1,19 +1,11 @@
 import { Sunrise, Sunset } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatLocalTime, localHour } from "@/lib/weather";
 
 interface SunInfoProps {
   sunrise: string;
   sunset: string;
   teeTimeHour: number;
-}
-
-function formatTime(iso: string): string {
-  const date = new Date(iso);
-  return date.toLocaleTimeString("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  });
 }
 
 function getDaylightHours(sunrise: string, sunset: string): string {
@@ -26,8 +18,9 @@ function getDaylightHours(sunrise: string, sunset: string): string {
 }
 
 export function SunInfo({ sunrise, sunset, teeTimeHour }: SunInfoProps) {
-  const sunriseHour = new Date(sunrise).getHours();
-  const sunsetHour = new Date(sunset).getHours();
+  // Course-local hours, to compare with the tee time picked on the course's clock
+  const sunriseHour = localHour(sunrise);
+  const sunsetHour = localHour(sunset);
   const roundEndHour = teeTimeHour + 5;
 
   const beforeSunrise = teeTimeHour < sunriseHour;
@@ -43,7 +36,7 @@ export function SunInfo({ sunrise, sunset, teeTimeHour }: SunInfoProps) {
           <div className="flex items-center gap-2">
             <Sunrise className="size-5 text-yellow-500" />
             <div>
-              <div className="text-sm font-heading">{formatTime(sunrise)}</div>
+              <div className="text-sm font-heading">{formatLocalTime(sunrise)}</div>
               <div className="text-xs text-foreground/60">Sunrise</div>
             </div>
           </div>
@@ -58,7 +51,7 @@ export function SunInfo({ sunrise, sunset, teeTimeHour }: SunInfoProps) {
           <div className="flex items-center gap-2">
             <Sunset className="size-5 text-orange-500" />
             <div>
-              <div className="text-sm font-heading">{formatTime(sunset)}</div>
+              <div className="text-sm font-heading">{formatLocalTime(sunset)}</div>
               <div className="text-xs text-foreground/60">Sunset</div>
             </div>
           </div>
