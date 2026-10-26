@@ -2,14 +2,20 @@ import { cn } from "@/lib/utils";
 
 type LogoProps = {
   className?: string;
+  markClassName?: string;
   textClassName?: string;
   showTagline?: boolean;
 };
 
-export function Logo({ className, textClassName, showTagline }: LogoProps) {
+export function Logo({
+  className,
+  markClassName,
+  textClassName,
+  showTagline,
+}: LogoProps) {
   return (
     <div className={cn("inline-flex items-center gap-3", className)}>
-      <LogoMark className="size-12 shrink-0" />
+      <LogoMark className={cn("size-12 shrink-0", markClassName)} />
       <div className="flex flex-col leading-none">
         <span
           className={cn(

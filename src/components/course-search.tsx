@@ -103,7 +103,9 @@ export function CourseSearch({ onSelect, initialValue }: CourseSearchProps) {
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-5 text-foreground/60" />
         <input
           ref={inputRef}
+          id="course-search"
           type="text"
+          autoComplete="off"
           value={query}
           onChange={(e) => {
             setQuery(e.target.value);
@@ -111,7 +113,7 @@ export function CourseSearch({ onSelect, initialValue }: CourseSearchProps) {
           }}
           onFocus={() => results.length > 0 && setIsOpen(true)}
           onKeyDown={handleKeyDown}
-          placeholder="Search Irish golf courses..."
+          placeholder="Start typing a course name…"
           className="w-full h-12 pl-11 pr-10 rounded-base border-2 border-border bg-secondary-background text-foreground font-base placeholder:text-foreground/40 focus:outline-none focus:ring-2 focus:ring-main"
         />
         {loading && (

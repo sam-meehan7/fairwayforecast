@@ -11,7 +11,7 @@ export function GolfTips({ tips }: GolfTipsProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Tips for Your Round</CardTitle>
+        <CardTitle>Tips for your round</CardTitle>
       </CardHeader>
       <CardContent>
         <ul className="space-y-2">

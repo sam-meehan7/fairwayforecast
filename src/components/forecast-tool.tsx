@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
 import { Loader2 } from "lucide-react";
 import { CourseSearch } from "@/components/course-search";
 import { DateTimePicker } from "@/components/date-time-picker";
@@ -8,8 +9,9 @@ import { WeatherDashboard } from "@/components/weather-dashboard";
 import { ForecastSummary } from "@/components/forecast-summary";
 import { ShareButton } from "@/components/share-button";
 import { Footer } from "@/components/footer";
-import { Logo } from "@/components/logo";
+import { SiteHeader } from "@/components/site-header";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { ComingSoonModal } from "@/components/coming-soon-modal";
 import { CourseMap } from "@/components/course-map-lazy";
 import type {
@@ -21,13 +23,35 @@ import {
   FORECAST_HORIZON_DAYS,
   isWithinForecastWindow,
 } from "@/lib/weather-utils";
-import { getDefaultRound } from "@/lib/tee-times";
+import { getDefaultRound, getTeeTimeOptions } from "@/lib/tee-times";
+import { formatOutlookDate } from "@/lib/course-outlook";
 
 const FF_INTEREST_DISMISSED = "ff_interest_dismissed_v1";
 
-// Static, crawlable content from the server page goes in `children`, between
-// the results and the footer.
-export function ForecastTool({ children }: { children?: React.ReactNode }) {
+// The "coming soon" prompt waits until a visitor has run this many forecasts,
+// so it never interrupts someone reading their first result.
+const INTEREST_PROMPT_AFTER = 2;
+
+function teeTimeLabel(teeTime: number): string {
+  return (
+    getTeeTimeOptions().find((opt) => opt.value === teeTime)?.label ??
+    `${Math.floor(teeTime)}:00`
+  );
+}
+
+interface ForecastToolProps {
+  // Static, crawlable content from the server page goes in `children`,
+  // between the results and the footer.
+  children?: React.ReactNode;
+  courseCount?: number;
+  popularCourses?: { name: string; href: string }[];
+}
+
+export function ForecastTool({
+  children,
+  courseCount,
+  popularCourses = [],
+}: ForecastToolProps) {
   const [selectedCourse, setSelectedCourse] =
     useState<GolfCourseResult | null>(null);
   // Both set on mount, not here: this page is prerendered, so a default fixed
@@ -42,6 +66,16 @@ export function ForecastTool({ children }: { children?: React.ReactNode }) {
   const [summaryLoading, setSummaryLoading] = useState(false);
   const [summaryError, setSummaryError] = useState(false);
   const [showComingSoon, setShowComingSoon] = useState(false);
+  // The round the results on screen are for. The pickers can move on before
+  // the next fetch, so the header and share link read this instead.
+  const [round, setRound] = useState<{ date: string; teeTime: number } | null>(
+    null
+  );
+  const forecastCount = useRef(0);
+  const resultsRef = useRef<HTMLElement>(null);
+  const initialised = useRef(false);
+  // Bumped to remount the course search, which keeps its own query text.
+  const [resetCount, setResetCount] = useState(0);
 
   async function fetchSummary(
     courseName: string,
@@ -113,6 +147,8 @@ export function ForecastTool({ children }: { children?: React.ReactNode }) {
 
       setForecast(data.forecast);
       setScore(data.score);
+      setRound({ date: weatherDate, teeTime: weatherTeeTime });
+      forecastCount.current += 1;
 
       fetch("/api/track-search", {
         method: "POST",
@@ -127,10 +163,11 @@ export function ForecastTool({ children }: { children?: React.ReactNode }) {
       }).catch(() => {});
 
       if (
+        forecastCount.current === INTEREST_PROMPT_AFTER &&
         typeof window !== "undefined" &&
         !localStorage.getItem(FF_INTEREST_DISMISSED)
       ) {
-        setTimeout(() => setShowComingSoon(true), 800);
+        setTimeout(() => setShowComingSoon(true), 1500);
       }
 
       // Fetch AI summary in parallel (fire-and-forget)
@@ -154,8 +191,12 @@ export function ForecastTool({ children }: { children?: React.ReactNode }) {
     }
   }
 
-  // Auto-fetch from shared link params
+  // Auto-fetch from shared link params. Runs once: the link is cleared from
+  // the URL below, so a second run (React dev mode re-runs mount effects)
+  // would find no params and reset the pickers to the defaults.
   useEffect(() => {
+    if (initialised.current) return;
+    initialised.current = true;
     const defaultRound = getDefaultRound();
     const params = new URLSearchParams(window.location.search);
     const name = params.get("name");
@@ -204,6 +245,31 @@ export function ForecastTool({ children }: { children?: React.ReactNode }) {
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Below the lg breakpoint the results land under the fold (and the map
+  // stacks on top of them), so bring them up. Desktop shows them in place.
+  useEffect(() => {
+    const el = resultsRef.current;
+    if (!forecast || !el) return;
+    if (window.matchMedia("(max-width: 1023px)").matches) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  }, [forecast]);
+
+  function resetTool() {
+    const defaultRound = getDefaultRound();
+    setSelectedCourse(null);
+    setDate(defaultRound.date);
+    setTeeTime(defaultRound.teeTime);
+    setForecast(null);
+    setScore(null);
+    setSummary(null);
+    setSummaryError(false);
+    setError(null);
+    setRound(null);
+    setResetCount((n) => n + 1);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
   function handleCourseSelect(course: GolfCourseResult) {
     setSelectedCourse(course);
     setForecast(null);
@@ -211,6 +277,7 @@ export function ForecastTool({ children }: { children?: React.ReactNode }) {
     setSummary(null);
     setSummaryError(false);
     setError(null);
+    setRound(null);
   }
 
   const canFetch = selectedCourse && date && !loading;
@@ -226,61 +293,105 @@ export function ForecastTool({ children }: { children?: React.ReactNode }) {
           setShowComingSoon(false);
         }}
       />
-      {/* Header */}
-      <header className="flex flex-col items-center py-8 px-6">
-        <Logo />
-        <h1 className="mt-3 text-lg text-foreground/70 text-center">
-          Golf weather forecasts for courses across Ireland — search your
-          course, pick your tee time, know what to expect.
-        </h1>
-      </header>
+      <SiteHeader onHomeClick={resetTool} />
 
-      {/* Search Controls */}
-      <section className="max-w-xl mx-auto px-6 space-y-3">
-        <CourseSearch
-          onSelect={handleCourseSelect}
-          initialValue={selectedCourse?.club_name}
-        />
-        <DateTimePicker
-          date={date}
-          teeTime={teeTime}
-          onDateChange={setDate}
-          onTeeTimeChange={setTeeTime}
-        />
-        <Button
-          onClick={fetchWeather}
-          disabled={!canFetch}
-          className="w-full h-12 text-base"
-          size="lg"
-        >
-          {loading ? (
-            <>
-              <Loader2 className="size-5 animate-spin" />
-              Loading Forecast...
-            </>
-          ) : (
-            "Get Forecast"
-          )}
-        </Button>
+      {/* Hero + search */}
+      <section className="max-w-xl mx-auto px-6 pt-10 sm:pt-14">
+        <div className="text-center mb-6">
+          <h1 className="text-3xl sm:text-4xl font-heading tracking-tight text-balance sm:-mx-12">
+            Golf weather forecasts for Irish courses
+          </h1>
+          <p className="mt-3 text-foreground/70 text-balance">
+            Pick your course and tee time to see wind, rain and temperature
+            for the five hours you&apos;re actually out there.
+          </p>
+        </div>
 
-        {error && (
-          <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-base px-4 py-3">
-            {error}
+        <Card className="p-4 sm:p-5 gap-3">
+          <div className="space-y-1.5">
+            <label htmlFor="course-search" className="text-sm font-heading">
+              Course
+            </label>
+            <CourseSearch
+              key={resetCount}
+              onSelect={handleCourseSelect}
+              initialValue={selectedCourse?.club_name}
+            />
           </div>
+          <DateTimePicker
+            date={date}
+            teeTime={teeTime}
+            onDateChange={setDate}
+            onTeeTimeChange={setTeeTime}
+          />
+          <Button
+            onClick={fetchWeather}
+            disabled={!canFetch}
+            className="w-full h-12 text-base mt-1"
+            size="lg"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="size-5 animate-spin" />
+                Loading forecast…
+              </>
+            ) : (
+              "Get forecast"
+            )}
+          </Button>
+
+          {error && (
+            <div
+              role="alert"
+              className="text-sm text-red-700 bg-red-50 border-2 border-red-300 rounded-base px-4 py-3"
+            >
+              {error}
+            </div>
+          )}
+        </Card>
+
+        <p className="mt-4 text-center text-sm text-foreground/60 text-balance">
+          {courseCount ? `${courseCount} Irish courses · ` : ""}
+          {FORECAST_HORIZON_DAYS}-day forecasts · Free, no sign-up
+        </p>
+        {popularCourses.length > 0 && !forecast && (
+          <p className="mt-2 text-center text-sm text-foreground/60 text-balance">
+            Popular:{" "}
+            {popularCourses.map((course, i) => (
+              <span key={course.href}>
+                {i > 0 && " · "}
+                <Link
+                  href={course.href}
+                  className="underline text-foreground hover:text-main"
+                >
+                  {course.name}
+                </Link>
+              </span>
+            ))}
+          </p>
         )}
       </section>
 
       {/* Results */}
-      {forecast && score && selectedCourse && (
-        <section className="max-w-6xl mx-auto px-6 mt-8">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-2xl font-heading">
-              {selectedCourse.club_name}
-            </h2>
+      {forecast && score && selectedCourse && round && (
+        <section
+          ref={resultsRef}
+          className="max-w-6xl mx-auto px-6 mt-10 scroll-mt-4"
+        >
+          <div className="flex items-start justify-between gap-4 mb-4">
+            <div>
+              <h2 className="text-2xl font-heading">
+                {selectedCourse.club_name}
+              </h2>
+              <p className="text-sm text-foreground/60">
+                {formatOutlookDate(round.date)} ·{" "}
+                {teeTimeLabel(round.teeTime)} tee time · 5-hour round
+              </p>
+            </div>
             <ShareButton
               course={selectedCourse}
-              date={date}
-              teeTime={teeTime}
+              date={round.date}
+              teeTime={round.teeTime}
             />
           </div>
           <div className="mb-4">
@@ -294,10 +405,10 @@ export function ForecastTool({ children }: { children?: React.ReactNode }) {
             <WeatherDashboard
               forecast={forecast}
               score={score}
-              teeTimeHour={Math.floor(teeTime)}
+              teeTimeHour={Math.floor(round.teeTime)}
             />
             {selectedCourse.latitude && selectedCourse.longitude && (
-              <div className="order-first lg:order-last">
+              <div>
                 <CourseMap
                   latitude={selectedCourse.latitude}
                   longitude={selectedCourse.longitude}

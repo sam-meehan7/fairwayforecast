@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Logo } from "@/components/logo";
+import { SiteHeader } from "@/components/site-header";
 import { Footer } from "@/components/footer";
 import { OG_IMAGE, TWITTER_IMAGE } from "@/app/_og-image";
 import {
@@ -52,13 +52,9 @@ export default async function GolfWeatherDirectory() {
 
   return (
     <main className="min-h-screen bg-background">
-      <header className="flex justify-center py-6 px-6">
-        <Link href="/" aria-label="FairwayForecast home">
-          <Logo />
-        </Link>
-      </header>
+      <SiteHeader />
 
-      <div className="max-w-6xl mx-auto px-6 space-y-8">
+      <div className="max-w-6xl mx-auto px-6 pt-8 space-y-8">
         <div className="space-y-3 max-w-3xl">
           <h1 className="text-3xl font-heading">{title}</h1>
           <p className="text-foreground/70">

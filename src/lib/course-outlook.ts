@@ -21,6 +21,8 @@ const HEADLINE_HOUR = 12;
 export interface OutlookRound {
   label: string;
   teeHour: number;
+  // Course-local ISO time of the first hour, e.g. "2026-10-27T09:00+00:00".
+  startsAt: string;
   score: PlayabilityScore;
 }
 
@@ -56,7 +58,14 @@ export function buildOutlook(series: LocationSeries): OutlookDay[] {
       const { hourly } = selectRoundWindow(series, date, teeHour);
       return hourly.length === 0
         ? []
-        : [{ label, teeHour, score: calculatePlayabilityScore(hourly) }];
+        : [
+            {
+              label,
+              teeHour,
+              startsAt: hourly[0].time,
+              score: calculatePlayabilityScore(hourly),
+            },
+          ];
     });
 
     days.push({
@@ -74,12 +83,16 @@ export function buildOutlook(series: LocationSeries): OutlookDay[] {
   return days;
 }
 
+// Rounds that teed off before `now` (ms since epoch) can't be booked, so
+// they're never the best one.
 export function bestRound(
-  days: OutlookDay[]
+  days: OutlookDay[],
+  now: number = Date.now()
 ): { day: OutlookDay; round: OutlookRound } | null {
   let best: { day: OutlookDay; round: OutlookRound } | null = null;
   for (const day of days) {
     for (const round of day.rounds) {
+      if (Date.parse(round.startsAt) < now) continue;
       if (!best || round.score.overall > best.round.score.overall) {
         best = { day, round };
       }

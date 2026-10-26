@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
       messages: [
         {
           role: "user",
-          content: `Write a 1-2 sentence summary of the conditions for this round of golf. Include practical advice. Keep it light and fun.
+          content: `Write a two-sentence summary of the conditions for this round of golf: first what to expect, then one practical tip. Write like an experienced local caddie: plain, specific and friendly, with no hype and no exclamation marks. Use the numbers given; don't invent details about the course.
 
 Course: ${courseName}
 Date: ${date}

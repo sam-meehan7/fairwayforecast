@@ -1,7 +1,7 @@
 "use client";
 
 import { useSyncExternalStore } from "react";
-import { Calendar, Clock } from "lucide-react";
+import { Calendar, ChevronDown, Clock } from "lucide-react";
 import { getForecastDateRange } from "@/lib/weather-utils";
 import { getTeeTimeOptions } from "@/lib/tee-times";
 
@@ -59,31 +59,44 @@ export function DateTimePicker({
 
   return (
     <div className="flex flex-col sm:flex-row gap-3">
-      <div className="relative flex-1">
-        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 size-5 text-foreground/60 pointer-events-none" />
-        <input
-          type="date"
-          value={date}
-          min={min || undefined}
-          max={max || undefined}
-          onChange={(e) => onDateChange(e.target.value)}
-          className="w-full h-12 pl-11 pr-4 rounded-base border-2 border-border bg-secondary-background text-foreground font-base focus:outline-none focus:ring-2 focus:ring-main"
-        />
+      <div className="flex-1 space-y-1.5">
+        <label htmlFor="round-date" className="text-sm font-heading">
+          Date
+        </label>
+        <div className="relative">
+          <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 size-5 text-foreground/60 pointer-events-none" />
+          <input
+            id="round-date"
+            type="date"
+            value={date}
+            min={min || undefined}
+            max={max || undefined}
+            onChange={(e) => onDateChange(e.target.value)}
+            className="w-full h-12 pl-11 pr-4 rounded-base border-2 border-border bg-secondary-background text-foreground font-base focus:outline-none focus:ring-2 focus:ring-main"
+          />
+        </div>
       </div>
 
-      <div className="relative flex-1">
-        <Clock className="absolute left-3 top-1/2 -translate-y-1/2 size-5 text-foreground/60 pointer-events-none" />
-        <select
-          value={teeTime}
-          onChange={(e) => onTeeTimeChange(Number(e.target.value))}
-          className="w-full h-12 pl-11 pr-4 rounded-base border-2 border-border bg-secondary-background text-foreground font-base focus:outline-none focus:ring-2 focus:ring-main appearance-none"
-        >
-          {teeTimeOptions.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
+      <div className="flex-1 space-y-1.5">
+        <label htmlFor="round-tee-time" className="text-sm font-heading">
+          Tee time
+        </label>
+        <div className="relative">
+          <Clock className="absolute left-3 top-1/2 -translate-y-1/2 size-5 text-foreground/60 pointer-events-none" />
+          <select
+            id="round-tee-time"
+            value={teeTime}
+            onChange={(e) => onTeeTimeChange(Number(e.target.value))}
+            className="w-full h-12 pl-11 pr-10 rounded-base border-2 border-border bg-secondary-background text-foreground font-base focus:outline-none focus:ring-2 focus:ring-main appearance-none"
+          >
+            {teeTimeOptions.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 size-5 text-foreground/60 pointer-events-none" />
+        </div>
       </div>
     </div>
   );

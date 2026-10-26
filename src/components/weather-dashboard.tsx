@@ -10,7 +10,7 @@ import { WindDisplay } from "@/components/wind-display";
 import { SunInfo } from "@/components/sun-info";
 import { GolfTips } from "@/components/golf-tips";
 import { Card, CardContent } from "@/components/ui/card";
-import { Thermometer, Droplets, Sun, Eye } from "lucide-react";
+import { Thermometer, CloudRain, Sun, Droplet } from "lucide-react";
 
 interface WeatherDashboardProps {
   forecast: RoundForecast;
@@ -41,6 +41,9 @@ export function WeatherDashboard({
   // Summary stats across the round
   const avgTemp =
     hourly.reduce((sum, h) => sum + h.temperature, 0) / hourly.length;
+  const avgFeels =
+    hourly.reduce((sum, h) => sum + h.apparent_temperature, 0) /
+    hourly.length;
   const avgWind =
     hourly.reduce((sum, h) => sum + h.wind_speed, 0) / hourly.length;
   const maxGust = Math.max(...hourly.map((h) => h.wind_gusts));
@@ -65,13 +68,16 @@ export function WeatherDashboard({
               <div className="text-2xl font-heading">
                 {Math.round(avgTemp)}{units.temperature}
               </div>
-              <div className="text-xs text-foreground/60">Avg Temperature</div>
+              <div className="text-xs text-foreground/60">Avg temp</div>
+              <div className="text-xs text-foreground/60">
+                Feels like {Math.round(avgFeels)}{units.temperature}
+              </div>
             </CardContent>
           </Card>
 
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-4">
-              <Droplets className="size-5 text-blue-500 mb-1" />
+              <CloudRain className="size-5 text-blue-500 mb-1" />
               <div className="text-2xl font-heading">
                 {maxRain != null
                   ? `${maxRain}%`
@@ -80,7 +86,7 @@ export function WeatherDashboard({
                   : "—"}
               </div>
               <div className="text-xs text-foreground/60">
-                {maxRain != null ? "Max Rain Chance" : "Expected Rainfall"}
+                {maxRain != null ? "Peak rain chance" : "Expected rainfall"}
               </div>
             </CardContent>
           </Card>
@@ -88,16 +94,16 @@ export function WeatherDashboard({
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-4">
               <Sun className="size-5 text-yellow-500 mb-1" />
-              <div className="text-2xl font-heading">{maxUV}</div>
-              <div className="text-xs text-foreground/60">Peak UV Index</div>
+              <div className="text-2xl font-heading">{Math.round(maxUV)}</div>
+              <div className="text-xs text-foreground/60">Peak UV index</div>
             </CardContent>
           </Card>
 
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-4">
-              <Eye className="size-5 text-foreground/60 mb-1" />
+              <Droplet className="size-5 text-sky-500 mb-1" />
               <div className="text-2xl font-heading">{Math.round(avgHumidity)}%</div>
-              <div className="text-xs text-foreground/60">Avg Humidity</div>
+              <div className="text-xs text-foreground/60">Avg humidity</div>
             </CardContent>
           </Card>
         </div>

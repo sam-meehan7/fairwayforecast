@@ -18,16 +18,22 @@ export function ForecastSummary({
 
   return (
     <Card>
-      <CardContent className="flex gap-3 items-start py-5">
+      <CardContent className="flex gap-3 items-start">
         <Sparkles className="size-5 shrink-0 text-main mt-0.5" />
-        {loading ? (
-          <div className="flex items-center gap-2 text-sm text-foreground/60">
-            <Loader2 className="size-4 animate-spin" />
-            <span>Writing your forecast...</span>
+        <div className="space-y-1">
+          <div className="flex items-baseline gap-2">
+            <h3 className="font-heading">Round summary</h3>
+            <span className="text-xs text-foreground/50">AI-generated</span>
           </div>
-        ) : (
-          <p className="text-sm leading-relaxed">{summary}</p>
-        )}
+          {loading ? (
+            <div className="flex items-center gap-2 text-sm text-foreground/60">
+              <Loader2 className="size-4 animate-spin" />
+              <span>Summarising the conditions…</span>
+            </div>
+          ) : (
+            <p className="text-sm leading-relaxed">{summary}</p>
+          )}
+        </div>
       </CardContent>
     </Card>
   );

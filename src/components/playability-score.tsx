@@ -5,6 +5,12 @@ interface PlayabilityScoreProps {
   score: PlayabilityScoreType;
 }
 
+function barColor(value: number): string {
+  if (value >= 70) return "bg-main";
+  if (value >= 40) return "bg-yellow-500";
+  return "bg-red-500";
+}
+
 function ScoreBar({
   label,
   value,
@@ -20,7 +26,7 @@ function ScoreBar({
         <span className="text-xs font-base w-16 shrink-0">{label}</span>
         <div className="flex-1 h-2 bg-background rounded-full border border-border">
           <div
-            className="h-full bg-main rounded-full transition-all"
+            className={`h-full rounded-full transition-all ${barColor(value ?? 0)}`}
             style={{ width: `${value ?? 0}%` }}
           />
         </div>
@@ -43,6 +49,7 @@ export function PlayabilityScoreCard({ score }: PlayabilityScoreProps) {
           </div>
           <div className={`text-5xl font-heading ${score.color}`}>
             {score.overall}
+            <span className="text-lg text-foreground/40">/100</span>
           </div>
           <div className={`text-lg font-heading ${score.color}`}>
             {score.label}

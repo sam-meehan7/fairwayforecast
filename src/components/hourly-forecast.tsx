@@ -13,15 +13,15 @@ export function HourlyForecast({ hourly, units }: HourlyForecastProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Hourly Forecast</CardTitle>
+        <CardTitle>Hour by hour</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="flex gap-3 overflow-x-auto pb-2">
+        <div className="grid grid-flow-col auto-cols-[minmax(96px,1fr)] gap-3 overflow-x-auto pb-2">
           {hourly.map((h) => {
             return (
               <div
                 key={h.time}
-                className="flex flex-col items-center gap-1.5 min-w-[80px] p-3 rounded-base border-2 border-border bg-background"
+                className="flex flex-col items-center gap-1.5 p-3 rounded-base bg-background whitespace-nowrap"
               >
                 <span className="text-xs font-heading">
                   {formatLocalHour(h.time)}
@@ -43,7 +43,7 @@ export function HourlyForecast({ hourly, units }: HourlyForecastProps) {
                 <div className="text-xs text-foreground/60">
                   {degreesToDirection(h.wind_direction)}
                   {h.wind_gusts > h.wind_speed && (
-                    <span> G{Math.round(h.wind_gusts)}</span>
+                    <span> · gusts {Math.round(h.wind_gusts)}</span>
                   )}
                 </div>
 
