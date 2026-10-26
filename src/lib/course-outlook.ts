@@ -101,6 +101,11 @@ export function bestRound(
   return best;
 }
 
+// 9 → "9 AM", 13 → "1 PM"
+export function formatTeeHour(hour: number): string {
+  return `${hour % 12 || 12} ${hour < 12 ? "AM" : "PM"}`;
+}
+
 // "2026-10-27" → "Tuesday 27 October". The date is already the course's own,
 // so it is formatted as a bare calendar date in UTC.
 export function formatOutlookDate(

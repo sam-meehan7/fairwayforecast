@@ -8,18 +8,22 @@ import { Button } from "@/components/ui/button";
 import { CourseMap } from "@/components/course-map-lazy";
 import { WeatherIcon } from "@/components/weather-icon";
 import { RoundLink } from "@/components/round-link";
+import { EmbedSnippet } from "@/components/embed-snippet";
 import {
   SITE_URL,
   coursePath,
+  embedPath,
   getCourseBySlug,
   getCourseDirectory,
   nearestCourses,
+  toolHref,
   type CourseListing,
 } from "@/lib/courses";
 import {
   bestRound,
   buildOutlook,
   formatOutlookDate,
+  formatTeeHour,
   type OutlookDay,
   type OutlookRound,
 } from "@/lib/course-outlook";
@@ -77,24 +81,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       images: [TWITTER_IMAGE],
     },
   };
-}
-
-// The homepage tool picks up these params as a shared link and fetches the
-// forecast for that exact tee time.
-function toolHref(course: CourseListing, date?: string, teeHour?: number) {
-  const params = new URLSearchParams({
-    name: course.club_name,
-    lat: String(course.latitude),
-    lng: String(course.longitude),
-  });
-  if (date) params.set("date", date);
-  if (teeHour !== undefined) params.set("t", String(teeHour));
-  return `/?${params.toString()}`;
-}
-
-// 9 → "9 AM", 13 → "1 PM"
-function formatTeeHour(hour: number): string {
-  return `${hour % 12 || 12} ${hour < 12 ? "AM" : "PM"}`;
 }
 
 function outlookSummary(
@@ -353,7 +339,10 @@ export default async function CoursePage({ params }: Props) {
           </ul>
         </section>
 
-        <section className="space-y-2 text-foreground/70 max-w-3xl">
+        <section
+          id="playability-score"
+          className="space-y-2 text-foreground/70 max-w-3xl scroll-mt-6"
+        >
           <h2 className="text-2xl font-heading text-foreground">
             How the playability score works
           </h2>
@@ -364,6 +353,22 @@ export default async function CoursePage({ params }: Props) {
             18 and 25°C score highest. Pick any date and tee time in the next
             two weeks for an hour-by-hour breakdown.
           </p>
+        </section>
+
+        <section className="space-y-3 max-w-3xl">
+          <h2 className="text-2xl font-heading">
+            Add this forecast to your club&apos;s website
+          </h2>
+          <p className="text-foreground/70">
+            Run {course.club_name}? Show members this 7-day golf forecast on
+            your own site, free. Paste the code below into any page; it
+            updates itself every few hours.
+          </p>
+          <EmbedSnippet
+            courseName={course.club_name}
+            embedUrl={`${SITE_URL}${embedPath(course)}`}
+            courseUrl={`${SITE_URL}${coursePath(course)}`}
+          />
         </section>
       </div>
 

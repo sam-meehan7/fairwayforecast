@@ -18,6 +18,27 @@ export function coursePath(course: Pick<CourseListing, "slug">): string {
   return `/golf-weather/${course.slug}`;
 }
 
+export function embedPath(course: Pick<CourseListing, "slug">): string {
+  return `/embed/${course.slug}`;
+}
+
+// The homepage tool picks up these params as a shared link and fetches the
+// forecast for that exact tee time.
+export function toolHref(
+  course: CourseListing,
+  date?: string,
+  teeHour?: number
+): string {
+  const params = new URLSearchParams({
+    name: course.club_name,
+    lat: String(course.latitude),
+    lng: String(course.longitude),
+  });
+  if (date) params.set("date", date);
+  if (teeHour !== undefined) params.set("t", String(teeHour));
+  return `/?${params.toString()}`;
+}
+
 // "Baile Átha Cliath G.C." → "baile-atha-cliath-g-c". Slugs are derived from
 // the club name rather than stored, so a rename in OSM moves the URL.
 export function slugify(name: string): string {

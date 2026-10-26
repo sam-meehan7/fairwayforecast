@@ -18,6 +18,14 @@ function subscribe() {
 
 // Course pages are cached for hours, so whether a round has already teed off
 // is only known in the viewer's browser. The server render assumes it hasn't.
+export function useTeedOff(startsAt: string): boolean {
+  return useSyncExternalStore(
+    subscribe,
+    () => Date.parse(startsAt) < Date.now(),
+    () => false
+  );
+}
+
 export function RoundLink({
   href,
   label,
@@ -25,11 +33,7 @@ export function RoundLink({
   startsAt,
   score,
 }: RoundLinkProps) {
-  const past = useSyncExternalStore(
-    subscribe,
-    () => Date.parse(startsAt) < Date.now(),
-    () => false
-  );
+  const past = useTeedOff(startsAt);
 
   const body = (
     <>
