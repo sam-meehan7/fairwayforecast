@@ -160,3 +160,18 @@ export function isWithinForecastWindow(date: string): boolean {
   const { min, max } = getForecastDateRange();
   return date >= min && date <= max;
 }
+
+// Server-side check for a requested round date. The picker's window is the
+// viewer's date through +FORECAST_HORIZON_DAYS. The viewer's and the course's
+// clocks can each sit a day off UTC, so allow a day either side here; a date
+// past the fetched series comes back with no hours.
+export function isRequestableForecastDate(date: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return false;
+  const utcToday = Date.parse(new Date().toISOString().slice(0, 10));
+  const dayOffset = Math.round((Date.parse(date) - utcToday) / 86_400_000);
+  return (
+    !isNaN(dayOffset) &&
+    dayOffset >= -1 &&
+    dayOffset <= FORECAST_HORIZON_DAYS + 1
+  );
+}

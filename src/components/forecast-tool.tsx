@@ -78,11 +78,9 @@ export function ForecastTool({
   const [resetCount, setResetCount] = useState(0);
 
   async function fetchSummary(
-    courseName: string,
+    course: GolfCourseResult,
     summaryDate: string,
-    summaryTeeTime: number,
-    forecastData: RoundForecast,
-    scoreData: PlayabilityScore
+    summaryTeeTime: number
   ) {
     setSummaryLoading(true);
     setSummaryError(false);
@@ -92,11 +90,10 @@ export function ForecastTool({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          courseName,
+          latitude: course.latitude,
+          longitude: course.longitude,
           date: summaryDate,
           teeTime: summaryTeeTime,
-          forecast: forecastData,
-          score: scoreData,
         }),
       });
 
@@ -171,13 +168,7 @@ export function ForecastTool({
       }
 
       // Fetch AI summary in parallel (fire-and-forget)
-      fetchSummary(
-        course.club_name,
-        weatherDate,
-        Math.floor(weatherTeeTime),
-        data.forecast,
-        data.score
-      );
+      fetchSummary(course, weatherDate, Math.floor(weatherTeeTime));
     } catch {
       setError("Something went wrong. Please try again.");
     } finally {
